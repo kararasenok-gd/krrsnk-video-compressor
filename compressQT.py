@@ -6,11 +6,10 @@ import humanize
 from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, 
                              QProgressBar, QTextEdit, QFileDialog, QMessageBox, QMenuBar, QMainWindow)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QIcon, QAction  # Импортируем QAction из QtGui
-
+from PyQt6.QtGui import QIcon, QAction
 
 class VideoCompressor(QThread):
-    progress_signal = pyqtSignal(int, int, int)  # Отправляем текущее и общее количество кадров и индекс файла
+    progress_signal = pyqtSignal(int, int, int)
     log_signal = pyqtSignal(str)
     complete_signal = pyqtSignal(str, int, float, int)
 
@@ -41,8 +40,6 @@ class VideoCompressor(QThread):
             ]
 
             self.log_signal.emit(f"Starting compression for {input_file} with CRF value: {self.crf_value}")
-            
-            # self.log_signal.emit(f"FFMpeg command: {' '.join(command)}")
             
             process = subprocess.Popen(command, stderr=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
             frame_pattern = re.compile(r'frame=\s*(\d+)')
@@ -76,8 +73,6 @@ class VideoCompressor(QThread):
             "-of", "json", input_file
         ]
         
-        # self.log_signal.emit(f"FFProbe command: {' '.join(command)}")
-        
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
         try:
             probe_data = json.loads(result.stdout)
@@ -89,13 +84,11 @@ class VideoCompressor(QThread):
 class CompressorApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        
         self.init_ui()
 
     def init_ui(self):
         self.setWindowTitle("Video Compressor")
 
-        # Центральный виджет
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
@@ -118,7 +111,6 @@ class CompressorApp(QMainWindow):
         self.ffprobecommand = QLabel("FFPROBE Command:")
         self.ffprobecommandInput = QLineEdit("./ffprobe.exe")
         
-
         self.progress_bars = []
         self.progress_labels = []
         self.status_log = QTextEdit()
@@ -143,11 +135,9 @@ class CompressorApp(QMainWindow):
         layout.addWidget(self.status_log)
         layout.addWidget(self.compress_button)
 
-        # Меню бар
         main_menu = self.menuBar()
         logs_menu = main_menu.addMenu('Files')
 
-        # Действие для очистки логов и прогресса
         clear_logs_action = QAction('Clear logs and progress', self)
         logs_menu.addAction(clear_logs_action)
         clear_logs_action.triggered.connect(self.clear_logs_and_progress)
@@ -156,7 +146,6 @@ class CompressorApp(QMainWindow):
         logs_menu.addAction(show_info_action)
         show_info_action.triggered.connect(self.show_info)
         
-    
     def show_info(self):
         QMessageBox.information(self, "Information", "KRRSNK Video Compressor v0.1\nCreated by kararasenok_gd\n\nInputs:\nVideo File - File to compress\nCRF Value - how to compress a file. The higher the value, the worse the quality.\nOutput folder - folder, where located compressed file\nFFMPEG Command - FFMpeg command. Can be just ffmpeg (if FFMpeg bin folder in PATH variable) or path to ffmpeg.exe\nFFPROBE Command - same, but with FFProbe")
 
@@ -176,10 +165,8 @@ class CompressorApp(QMainWindow):
         self.status_log.append(message)
 
     def clear_logs_and_progress(self):
-        # Очищаем логи
         self.status_log.clear()
 
-        # Удаляем старые прогресс-бары и лейблы, если они есть
         for progress_bar in self.progress_bars:
             self.central_widget.layout().removeWidget(progress_bar)
             progress_bar.deleteLater()
@@ -205,17 +192,14 @@ class CompressorApp(QMainWindow):
             QMessageBox.warning(self, "Input Error", "Please select input files and output folder.")
             return
 
-        # Очищаем предыдущие логи и прогресс-бары
         self.clear_logs_and_progress()
 
-        # Создаем выходные файлы
         output_files = []
         for input_file in input_files:
             input_name = os.path.splitext(os.path.basename(input_file))[0]
             output_file = os.path.join(output_folder, f"{input_name}_compressed.mp4")
             output_files.append(output_file)
 
-        # Создаем прогресс-бары для каждого файла
         for file in input_files:
             progress_bar = QProgressBar()
             label = QLabel(f"Progress for {os.path.basename(file)}:")
@@ -242,3 +226,4 @@ if __name__ == '__main__':
     window = CompressorApp()
     window.show()
     app.exec()
+
