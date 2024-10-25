@@ -17,9 +17,9 @@ pyinstaller --noconfirm --onefile --console --name "VideoCompress" "compress.py"
 
 ## Installation
 
-### Realeses
+### Releases
 
-1. Go to [realeses](https://github.com/kararasenok-gd/krrsnk-video-compressor/releases)
+1. Go to [releases](https://github.com/kararasenok-gd/krrsnk-video-compressor/releases)
 2. Download installer or portable version
 3. Run installer and install program or unzip archive somewhere
 
