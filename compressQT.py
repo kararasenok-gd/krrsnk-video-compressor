@@ -7,6 +7,19 @@ from PyQt6.QtWidgets import (QApplication, QWidget, QLabel, QLineEdit, QPushButt
                              QProgressBar, QTextEdit, QFileDialog, QMessageBox, QMenuBar, QMainWindow)
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QIcon, QAction
+import requests
+import webbrowser
+
+
+CURRENT_VERSION = "0.1.1"
+def check_updates():
+    try:
+        response = requests.get("https://api.github.com/repos/kararasenok-gd/krrsnk-video-compressor/releases/latest")
+        response.raise_for_status()
+        latest_release = response.json()
+        return latest_release["name"] == f"v{CURRENT_VERSION}"
+    except Exception as e:
+        return False
 
 class VideoCompressor(QThread):
     progress_signal = pyqtSignal(int, int, int)
@@ -85,6 +98,7 @@ class CompressorApp(QMainWindow):
     def __init__(self):
         super().__init__()
         self.init_ui()
+        self.check_update(showIfLatest=False)
 
     def init_ui(self):
         self.setWindowTitle("Video Compressor")
@@ -136,7 +150,7 @@ class CompressorApp(QMainWindow):
         layout.addWidget(self.compress_button)
 
         main_menu = self.menuBar()
-        logs_menu = main_menu.addMenu('Files')
+        logs_menu = main_menu.addMenu('Actions')
 
         clear_logs_action = QAction('Clear logs and progress', self)
         logs_menu.addAction(clear_logs_action)
@@ -146,8 +160,30 @@ class CompressorApp(QMainWindow):
         logs_menu.addAction(show_info_action)
         show_info_action.triggered.connect(self.show_info)
         
+        check_updates_action = QAction('Check updates', self)
+        logs_menu.addAction(check_updates_action)
+        check_updates_action.triggered.connect(self.check_updates_act)
+        
+    def check_updates_act(self):
+        self.check_update()
+        
+    def check_update(self, showIfLatest=True):
+        if not check_updates():
+            msgbox = QMessageBox.question(
+                self,
+                "Information",
+                "New version available! Would you like to download it?",
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if msgbox == QMessageBox.StandardButton.Yes:
+                webbrowser.open("https://github.com/kararasenok-gd/krrsnk-video-compressor/releases/latest")
+        else:
+            if showIfLatest:
+                QMessageBox.information(self, "Information", "You already have the latest version!")
+        
     def show_info(self):
-        QMessageBox.information(self, "Information", "KRRSNK Video Compressor v0.1\nCreated by kararasenok_gd\n\nInputs:\nVideo File - File to compress\nCRF Value - how to compress a file. The higher the value, the worse the quality.\nOutput folder - folder, where located compressed file\nFFMPEG Command - FFMpeg command. Can be just ffmpeg (if FFMpeg bin folder in PATH variable) or path to ffmpeg.exe\nFFPROBE Command - same, but with FFProbe")
+        QMessageBox.information(self, "Information", f"KRRSNK Video Compressor v{CURRENT_VERSION}\nCreated by kararasenok_gd\n\nInputs:\nVideo File - File to compress\nCRF Value - how to compress a file. The higher the value, the worse the quality.\nOutput folder - folder, where located compressed file\nFFMPEG Command - FFMpeg command. Can be just ffmpeg (if FFMpeg bin folder in PATH variable) or path to ffmpeg.exe\nFFPROBE Command - same, but with FFProbe")
 
     def browse_files(self):
         file_dialog = QFileDialog(self)
